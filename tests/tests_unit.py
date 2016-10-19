@@ -21,10 +21,15 @@ from mock import call
 
 from omega_gpio import OmegaGPIO
 
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__
+
 
 class TestOmegaGPIO(unittest.TestCase):
     def setUp(self):
-        with mock.patch('__builtin__.open'):
+        with mock.patch.object(__builtin__, 'open'):
             self.omega = OmegaGPIO()
 
     def tearDown(self):
@@ -32,7 +37,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_init(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', new=mo) as _mock:
+        with mock.patch.object(__builtin__, 'open', new=mo) as _mock:
             OmegaGPIO()
         mo.assert_called_with('/sys/class/gpio/gpiochip0/subsystem/export', 'w')
         self.assertEqual(mo.mock_calls, [
@@ -97,7 +102,7 @@ class TestOmegaGPIO(unittest.TestCase):
     @mock.patch.object(OmegaGPIO, 'pin_state')
     def test_set_pin(self, p_pin_state):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             self.omega.set_pin(8, 1)
 
         p_pin_state.assert_called_once_with(8, 'w')
@@ -107,7 +112,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_set_pin_bad_pin(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.assertRaises(ValueError):
                 self.omega.set_pin(None, 1)
         mo.assert_not_called()
@@ -115,7 +120,7 @@ class TestOmegaGPIO(unittest.TestCase):
     @mock.patch.object(OmegaGPIO, 'pin_state')
     def test_get_pin(self, p_pin_state):
         mo = mock.mock_open(read_data="1")
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             pin = self.omega.get_pin(8)
 
         p_pin_state.assert_called_once_with(8, 'r')
@@ -126,7 +131,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_get_pin_bad_pin(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.assertRaises(ValueError):
                 self.omega.get_pin(None)
         mo.assert_not_called()
@@ -143,7 +148,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_pin_state_r(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.omega.pin_state(8, 'r'):
                 pass
         mo.assert_called_once_with('/sys/class/gpio/gpio8/direction', 'w')
@@ -152,7 +157,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_pin_state_read(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.omega.pin_state(8, 'read'):
                 pass
         mo.assert_called_once_with('/sys/class/gpio/gpio8/direction', 'w')
@@ -161,7 +166,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_pin_state_w(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.omega.pin_state(8, 'w'):
                 pass
         mo.assert_called_once_with('/sys/class/gpio/gpio8/direction', 'w')
@@ -170,7 +175,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_pin_state_pin_invalid(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.assertRaises(ValueError) as cm:
                 with self.omega.pin_state(None, None):
                     pass
@@ -179,7 +184,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_pin_state_bad_state_not_str(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.assertRaises(TypeError) as cm:
                 with self.omega.pin_state(8, None):
                     pass
@@ -188,7 +193,7 @@ class TestOmegaGPIO(unittest.TestCase):
 
     def test_pin_state_bad_state_invalid(self):
         mo = mock.mock_open()
-        with mock.patch('__builtin__.open', mo, create=True):
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
             with self.assertRaises(ValueError) as cm:
                 with self.omega.pin_state(8, 'foo'):
                     pass
