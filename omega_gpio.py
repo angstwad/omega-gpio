@@ -32,7 +32,7 @@ class OmegaGPIO(object):
         try:
             assert pin in self.pins, "pin '%s' invalid" % pin
         except AssertionError as e:
-            raise ValueError(e.message)
+            raise ValueError(str(e))
 
     @contextlib.contextmanager
     def pin_state(self, pin, state):
@@ -44,7 +44,7 @@ class OmegaGPIO(object):
         except AttributeError:
             raise TypeError('state must be string type')
         except AssertionError as e:
-            raise ValueError(e.message)
+            raise ValueError(str(e))
 
         if state.lower() in ('read', 'r'):
             with open(self.pin_dir_path.format(pin), 'w') as f:

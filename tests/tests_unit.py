@@ -180,7 +180,7 @@ class TestOmegaGPIO(unittest.TestCase):
                 with self.omega.pin_state(None, None):
                     pass
         mo.assert_not_called()
-        self.assertEqual("pin 'None' invalid", cm.exception.message)
+        self.assertEqual("pin 'None' invalid", str(cm.exception))
 
     def test_pin_state_bad_state_not_str(self):
         mo = mock.mock_open()
@@ -188,7 +188,7 @@ class TestOmegaGPIO(unittest.TestCase):
             with self.assertRaises(TypeError) as cm:
                 with self.omega.pin_state(8, None):
                     pass
-        self.assertEqual('state must be string type', cm.exception.message)
+        self.assertEqual('state must be string type', str(cm.exception))
         mo.assert_not_called()
 
     def test_pin_state_bad_state_invalid(self):
@@ -197,7 +197,7 @@ class TestOmegaGPIO(unittest.TestCase):
             with self.assertRaises(ValueError) as cm:
                 with self.omega.pin_state(8, 'foo'):
                     pass
-        self.assertEqual("'foo' state invalid", cm.exception.message)
+        self.assertEqual("'foo' state invalid", str(cm.exception))
         mo.assert_not_called()
 
 
