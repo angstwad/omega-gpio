@@ -35,70 +35,6 @@ class TestOmegaGPIO(unittest.TestCase):
     def tearDown(self):
         del self.omega
 
-    def test_init(self):
-        mo = mock.mock_open()
-        with mock.patch.object(__builtin__, 'open', new=mo) as _mock:
-            OmegaGPIO()
-        mo.assert_called_with('/sys/class/gpio/gpiochip0/subsystem/export', 'w')
-        self.assertEqual(mo.mock_calls, [
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('0'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('1'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('6'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('7'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('8'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('12'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('13'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('14'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('18'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('19'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('20'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('21'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('23'),
-            call().__exit__(None, None, None),
-            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
-            call().__enter__(),
-            call().write('26'),
-            call().__exit__(None, None, None),
-        ])
-
     @mock.patch.object(OmegaGPIO, 'pin_state')
     def test_set_pin(self, p_pin_state):
         mo = mock.mock_open()
@@ -149,29 +85,58 @@ class TestOmegaGPIO(unittest.TestCase):
     def test_pin_state_r(self):
         mo = mock.mock_open()
         with mock.patch.object(__builtin__, 'open', mo, create=True):
-            with self.omega.pin_state(8, 'r'):
-                pass
-        mo.assert_called_once_with('/sys/class/gpio/gpio8/direction', 'w')
-        ctx = mo()
-        ctx.write.assert_called_once_with('in')
+            with mock.patch.object(self.omega, '_export_pin'):
+                with mock.patch.object(self.omega, '_unexport_pin'):
+                    with self.omega.pin_state(8, 'r'):
+                        pass
+        mo.assert_has_calls([
+            call('/sys/class/gpio/gpio8/direction', 'w'),
+            call().__enter__(),
+            call().write('in'),
+            call().__exit__(None, None, None)
+        ])
 
     def test_pin_state_read(self):
         mo = mock.mock_open()
         with mock.patch.object(__builtin__, 'open', mo, create=True):
-            with self.omega.pin_state(8, 'read'):
-                pass
-        mo.assert_called_once_with('/sys/class/gpio/gpio8/direction', 'w')
-        ctx = mo()
-        ctx.write.assert_called_once_with('in')
+            with mock.patch.object(self.omega, '_export_pin'):
+                with mock.patch.object(self.omega, '_unexport_pin'):
+                    with self.omega.pin_state(8, 'read'):
+                        pass
+        mo.assert_has_calls([
+            call('/sys/class/gpio/gpio8/direction', 'w'),
+            call().__enter__(),
+            call().write('in'),
+            call().__exit__(None, None, None)
+        ])
 
     def test_pin_state_w(self):
         mo = mock.mock_open()
         with mock.patch.object(__builtin__, 'open', mo, create=True):
-            with self.omega.pin_state(8, 'w'):
-                pass
-        mo.assert_called_once_with('/sys/class/gpio/gpio8/direction', 'w')
-        ctx = mo()
-        ctx.write.assert_called_once_with('out')
+            with mock.patch.object(self.omega, '_export_pin'):
+                with mock.patch.object(self.omega, '_unexport_pin'):
+                    with self.omega.pin_state(8, 'w'):
+                        pass
+        mo.assert_has_calls([
+            call('/sys/class/gpio/gpio8/direction', 'w'),
+            call().__enter__(),
+            call().write('out'),
+            call().__exit__(None, None, None),
+        ])
+
+    def test_pin_state_write(self):
+        mo = mock.mock_open()
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
+            with mock.patch.object(self.omega, '_export_pin'):
+                with mock.patch.object(self.omega, '_unexport_pin'):
+                    with self.omega.pin_state(8, 'write'):
+                        pass
+        mo.assert_has_calls([
+            call('/sys/class/gpio/gpio8/direction', 'w'),
+            call().__enter__(),
+            call().write('out'),
+            call().__exit__(None, None, None)
+        ])
 
     def test_pin_state_pin_invalid(self):
         mo = mock.mock_open()
@@ -199,6 +164,29 @@ class TestOmegaGPIO(unittest.TestCase):
                     pass
         self.assertEqual("'foo' state invalid", str(cm.exception))
         mo.assert_not_called()
+
+    def test__export_pin(self):
+        mo = mock.mock_open()
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
+            self.omega._export_pin(8)
+        mo.assert_has_calls([
+            call('/sys/class/gpio/gpiochip0/subsystem/export', 'w'),
+            call().__enter__(),
+            call().write('8'),
+            call().__exit__(None, None, None)
+        ])
+
+    def test__unexport_pin(self):
+        mo = mock.mock_open()
+        with mock.patch.object(__builtin__, 'open', mo, create=True):
+            self.omega._unexport_pin(8)
+        mo.assert_has_calls([
+            call('/sys/class/gpio/gpiochip0/subsystem/unexport', 'w'),
+            call().__enter__(),
+            call().write('8'),
+            call().__exit__(None, None, None)
+        ])
+
 
 
 if __name__ == '__main__':

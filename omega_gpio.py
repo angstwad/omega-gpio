@@ -18,21 +18,34 @@ import contextlib
 
 
 class OmegaGPIO(object):
+    unexport_path = "/sys/class/gpio/gpiochip0/subsystem/unexport"
     export_path = "/sys/class/gpio/gpiochip0/subsystem/export"
     pin_dir_path = "/sys/class/gpio/gpio{}/direction"
     pin_val_path = "/sys/class/gpio/gpio{}/value"
     pins = (0, 1, 6, 7, 8, 12, 13, 14, 18, 19, 20, 21, 23, 26)
-
-    def __init__(self):
-        for pin in self.pins:
-            with open(self.export_path, 'w') as f:
-                f.write(str(pin))
 
     def _validate_pin(self, pin):
         try:
             assert pin in self.pins, "pin '%s' invalid" % pin
         except AssertionError as e:
             raise ValueError(str(e))
+
+    def _set_pin_direction(self, pin, direction):
+        try:
+            assert direction in ("in", "out"), \
+                "'%s' invalid direction" % direction
+        except AssertionError as e:
+            raise ValueError(e)
+        with open(self.pin_dir_path.format(pin), 'w') as f:
+            f.write(direction)
+
+    def _export_pin(self, pin):
+        with open(self.export_path, 'w') as f:
+            f.write(str(pin))
+
+    def _unexport_pin(self, pin):
+        with open(self.unexport_path, 'w') as f:
+            f.write(str(pin))
 
     @contextlib.contextmanager
     def pin_state(self, pin, state):
@@ -44,15 +57,15 @@ class OmegaGPIO(object):
         except AttributeError:
             raise TypeError('state must be string type')
         except AssertionError as e:
-            raise ValueError(str(e))
+            raise ValueError(e)
 
-        if state.lower() in ('read', 'r'):
-            with open(self.pin_dir_path.format(pin), 'w') as f:
-                f.write("in")
-        elif state.lower() in ('write', 'w'):
-            with open(self.pin_dir_path.format(pin), 'w') as f:
-                f.write("out")
+        self._export_pin(pin)
+        if state in ('read', 'r'):
+            self._set_pin_direction(pin, "in")
+        elif state in ('write', 'w'):
+            self._set_pin_direction(pin, "out")
         yield
+        self._unexport_pin(pin)
 
     def pin_on(self, pin):
         self.set_pin(pin, 1)
