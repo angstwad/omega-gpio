@@ -21,6 +21,7 @@ from omega_gpio import OmegaGPIO
 omega = OmegaGPIO()
 
 omega.pin_on(5)
+omega.get_pin(5)  # returns 1
 omega.pin_off(5)
 ```
 
